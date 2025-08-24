@@ -7,10 +7,24 @@ import { Component, input } from '@angular/core';
   styleUrl: './task.css'
 })
 export class Task {
-  name = input('');
+  type = input('');
   assignee = input('');
   // Accept Date | string | number for flexibility
   lastDone = input<Date | string | number | undefined>(undefined);
+
+  displayType(): string {
+    const t = (this.type() || '').toLowerCase();
+    switch (t) {
+      case 'kitchen':
+        return 'Rengøring køkken';
+      case 'floor':
+        return 'Rengøring stue og trappe';
+      case 'bathroom':
+        return 'Rengøring badeværelse';
+      default:
+        return this.type() || '';
+    }
+  }
 
   daysAgo(): number {
     const v = this.lastDone();

@@ -1,8 +1,31 @@
 <main class="flex flex-1 flex-col p-4 items-center">
   <h1 class="text-xl">Rugårdsvej 16</h1>
   <h2 class="text-3xl font-bold mb-8">Gør Rent</h2>
-  @for (task of tasks; track task.name) {
-    <app-task class="self-stretch w-full" [name]="task.name" [assignee]="task.assignee" [lastDone]="task.lastDone"></app-task>
+
+  @if (!user()) {
+    <form class="w-full max-w-sm space-y-2" (submit)="login($event)">
+      <label class="block">
+        <span class="text-sm">Email</span>
+        <input class="border p-2 w-full" type="email" required [ngModel]="email()" name="email" (ngModelChange)="email.set($event)" />
+      </label>
+      <label class="block">
+        <span class="text-sm">Password</span>
+        <input class="border p-2 w-full" type="password" required [ngModel]="password()" name="password" (ngModelChange)="password.set($event)" />
+      </label>
+      @if (authError()) {
+        <div class="text-red-600 text-sm">{{ authError() }}</div>
+      }
+      <button class="bg-blue-600 text-white px-4 py-2 rounded" type="submit">Sign in</button>
+    </form>
+  } @else {
+    <div class="self-stretch flex justify-between items-center w-full max-w-sm mb-4">
+      <div class="text-sm text-gray-600">Signed in as {{ user()?.email }}</div>
+      <button class="text-sm underline" (click)="logout()">Sign out</button>
+    </div>
+
+    @for (task of (tasks() ?? []); track task.type) {
+      <app-task class="self-stretch w-full" [type]="task.type" [assignee]="task.assignee" [lastDone]="task.completedAt"></app-task>
+    }
   }
 </main>
 
