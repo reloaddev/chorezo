@@ -3,7 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Task } from './task/task';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { TasksService, TaskDoc } from './tasks.service';
+import { TasksService, TaskDoc } from '../services/tasks.service';
 import { Auth, authState, signInWithEmailAndPassword, signOut, User } from '@angular/fire/auth';
 import { of, switchMap } from 'rxjs';
 
