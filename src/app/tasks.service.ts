@@ -1,7 +1,8 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { Firestore, collection, collectionData, Timestamp, query, where, orderBy, limit } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, Timestamp, query, where, orderBy, limit, getDocs, updateDoc, doc, addDoc } from '@angular/fire/firestore';
 import { map, shareReplay, tap } from 'rxjs/operators';
 import { Observable, combineLatest } from 'rxjs';
+import { choreRotation } from '../config/chore-rotation.config';
 
 export interface TaskDoc {
   type: string;
@@ -13,6 +14,17 @@ export interface TaskDoc {
 @Injectable({ providedIn: 'root' })
 export class TasksService {
   constructor(private readonly firestore: Firestore) {}
+
+  private nextAssignee(current: string | undefined | null): string {
+    if (!Array.isArray(choreRotation) || choreRotation.length === 0) {
+      return current ?? '';
+    }
+    const idx = choreRotation.findIndex(
+      (name) => name?.toLowerCase?.() === (current ?? '').toLowerCase()
+    );
+    if (idx === -1) return choreRotation[0];
+    return choreRotation[(idx + 1) % choreRotation.length];
+  }
 
   private toDate(value: any): Date | undefined {
     if (!value) return undefined;
@@ -99,5 +111,32 @@ export class TasksService {
       tap((items) => console.log('open + last done per type', items)),
       shareReplay({ bufferSize: 1, refCount: true })
     );
+  }
+
+  // Marks the currently open task (no completedAt) for a given type as completed now
+  // and creates a new open task with the next assignee based on choreRotation.
+  async completeOpenTask(type: string): Promise<void> {
+    const ref = collection(this.firestore, 'tasks');
+    const q = query(ref, where('type', '==', type), limit(50));
+    const snap = await getDocs(q as any);
+    const openDoc = snap.docs.find((d: any) => {
+      const data = d.data();
+      return data.completedAt === null || typeof data.completedAt === 'undefined';
+    });
+    if (!openDoc) {
+      console.warn('No open task found for type', type);
+      return;
+    }
+
+    const data: any = openDoc.data();
+    const currentAssignee = data?.assignee ?? '';
+
+    // 1) Set completedAt on the current open task
+    const dref = doc(this.firestore, 'tasks', openDoc.id);
+    await updateDoc(dref as any, { completedAt: new Date() } as any);
+
+    // 2) Create a new open task without completedAt, with next assignee in rotation
+    const next = this.nextAssignee(currentAssignee);
+    await addDoc(ref as any, { type, assignee: next } as any);
   }
 }

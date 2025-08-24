@@ -1,4 +1,5 @@
-import { Component, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
+import { TasksService } from '../tasks.service';
 
 @Component({
   selector: 'app-task',
@@ -7,6 +8,8 @@ import { Component, input } from '@angular/core';
   styleUrl: './task.css'
 })
 export class Task {
+  private readonly tasks = inject(TasksService);
+
   type = input('');
   assignee = input('');
   // Accept Date | string | number for flexibility
@@ -35,5 +38,19 @@ export class Task {
     const ms = now.getTime() - d.getTime();
     const days = Math.floor(ms / (1000 * 60 * 60 * 24));
     return days < 0 ? 0 : days;
+  }
+
+  async confirmDone() {
+    const type = this.type();
+    const who = this.assignee();
+    if (!type) return;
+    const ok = window.confirm("Har du gjort dine roommates glade?");
+    if (!ok) return;
+    try {
+      await this.tasks.completeOpenTask(type);
+    } catch (e) {
+      console.error('Failed to complete task', e);
+      alert('Kunne ikke markere opgaven som færdig. Prøv igen.');
+    }
   }
 }
