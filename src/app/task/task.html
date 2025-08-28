@@ -1,4 +1,4 @@
-<div class="w-full rounded-xl border border-slate-200 bg-white shadow-md p-4 mb-4 cursor-pointer select-none" role="button" tabindex="0" (click)="confirmDone()" (keyup.enter)="confirmDone()" (keyup.space)="confirmDone()">
+<div [class]="cardClass()" role="button" tabindex="0" (click)="confirmDone()" (keyup.enter)="confirmDone()" (keyup.space)="confirmDone()">
   <div class="flex items-center justify-between">
     <h3 class="text-lg font-semibold text-slate-800 truncate">{{ displayType() }}</h3>
   </div>
