@@ -15,6 +15,7 @@ import { of, switchMap } from 'rxjs';
 })
 export class App {
   private readonly auth = inject<Auth>(Auth);
+  private readonly tasksService = inject(TasksService);
 
   protected readonly user = toSignal<User | null | undefined>(authState(this.auth));
   protected readonly email = signal('');
@@ -23,7 +24,7 @@ export class App {
 
   protected readonly tasks: Signal<TaskDoc[] | undefined>;
 
-  constructor(private readonly tasksService: TasksService) {
+  constructor() {
     const tasks$ = authState(this.auth).pipe(
       switchMap((u) => (u ? this.tasksService.openWithLastDoneByType$() : of([] as TaskDoc[])))
     );
@@ -36,8 +37,9 @@ export class App {
     try {
       await signInWithEmailAndPassword(this.auth, this.email(), this.password());
       this.password.set('');
-    } catch (e: any) {
-      this.authError.set(e?.message ?? 'Login failed');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Login failed';
+      this.authError.set(message);
     }
   }
 

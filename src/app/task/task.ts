@@ -42,7 +42,6 @@ export class Task {
 
   async confirmDone() {
     const type = this.type();
-    const who = this.assignee();
     if (!type) return;
     const ok = window.confirm("Har du gjort dine roommates glade?");
     if (!ok) return;
