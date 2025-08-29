@@ -50,7 +50,7 @@ export class Task {
     const days = this.daysAgo();
     if (days < Task.GREEN_MAX_EXCLUSIVE) return 'green';
     if (days >= Task.ORANGE_RANGE[0] && days <= Task.ORANGE_RANGE[1]) return 'orange';
-    if (days > Task.RED_MIN_EXCLUSIVE) return 'red';
+    if (days >= Task.RED_MIN_EXCLUSIVE) return 'red';
     return 'default';
   }
 
