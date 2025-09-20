@@ -1,9 +1,13 @@
 {
-  "name": "wotohe",
-  "short_name": "wotohe",
+  "name": "Chorezo",
+  "short_name": "chorezo",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
+  "gcm_sender_id": "103953800507",
+  "permissions": [
+    "notifications"
+  ],
   "icons": [
     {
       "src": "icons/icon-72x72.png",

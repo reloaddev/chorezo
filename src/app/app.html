@@ -1,6 +1,6 @@
 <main class="flex flex-1 flex-col p-4 items-center">
   <h1 class="text-xl">Rugårdsvej 16</h1>
-  <h2 class="text-3xl font-bold mb-8">Gør Rent</h2>
+  <h2 class="text-3xl font-bold mb-8">Chorezo</h2>
 
   @if (!user()) {
     <form class="w-full max-w-sm space-y-2" (submit)="login($event)">
@@ -22,6 +22,30 @@
       <div class="text-sm text-gray-600">Signed in as {{ user()?.email }}</div>
       <button class="text-sm underline" (click)="logout()">Sign out</button>
     </div>
+
+    <!-- ADDED: Minimal notification UI -->
+    @if (showNotificationButton()) {
+      <button class="bg-green-600 text-white px-4 py-2 rounded mb-4 text-sm" (click)="enableNotifications()">
+        🔔 Enable Notifications
+      </button>
+    }
+    
+    @if (showInstallPrompt()) {
+      <div class="bg-blue-50 border border-blue-200 rounded p-3 mb-4 text-sm max-w-sm">
+        <div class="font-semibold mb-2">📱 For iPhone notifications:</div>
+        <div class="text-xs text-gray-700">
+          1. Tap Share ⬆️ → "Add to Home Screen"<br>
+          2. Open app from home screen<br>
+          3. Enable notifications
+        </div>
+        <button class="text-blue-600 underline text-xs mt-2" (click)="showInstallPrompt.set(false)">Got it</button>
+      </div>
+    }
+
+    @if (isNotificationsEnabled()) {
+      <div class="text-green-600 text-xs mb-4">✅ Notifications enabled</div>
+    }
+    <!-- END: Notification UI -->
 
     @for (task of (tasks() ?? []); track task.type) {
       <app-task class="self-stretch w-full" [type]="task.type" [assignee]="task.assignee" [lastDone]="task.completedAt"></app-task>
