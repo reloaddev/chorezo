@@ -1,4 +1,3 @@
-<!-- todo.component.html -->
 <div class="max-w-2xl mx-auto">
   <!-- Clear All Button -->
   <div class="flex justify-end mb-4" *ngIf="todos.length > 0">
@@ -11,7 +10,7 @@
   </div>
 
   <!-- Todo List -->
-  <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+  <div class="bg-white rounded-xl drop-shadow-lg overflow-hidden">
     <!-- Existing Todos -->
     <div 
       *ngFor="let todo of todos" 
@@ -67,7 +66,7 @@
       <input 
         [(ngModel)]="newTodoText"
         (keydown)="onAddKeyPress($event)"
-        placeholder="Add new task..."
+        placeholder="Add new item..."
         class="flex-1 p-4  border-none outline-none text-gray-700 placeholder-gray-400"
         #addInput
       >

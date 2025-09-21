@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef, AfterViewInit, OnInit, inject } from '@angular/core';
-import { ShoppingListService, ShoppingTodo } from './shopping-list.service';
+import { ShoppingListService, ShoppingTodo } from '../../services/shopping-list.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
