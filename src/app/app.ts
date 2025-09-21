@@ -2,6 +2,7 @@ import { Component, Signal, inject, signal, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Task } from './task/task';
+import { ShoppingList } from './shopping-list/shopping-list';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TasksService, TaskDoc } from '../services/tasks.service';
 import { Auth, authState, signInWithEmailAndPassword, signOut, User } from '@angular/fire/auth';
@@ -10,11 +11,17 @@ import { MessagingService } from '../services/messaging.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, FormsModule, Task],
+  imports: [RouterOutlet, FormsModule, Task, ShoppingList],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
+
 export class App implements OnInit {
+  // Tab state
+  protected readonly selectedTab = signal(0);
+  selectTab(tab: number) {
+    this.selectedTab.set(tab);
+  }
   private readonly auth = inject<Auth>(Auth);
   private readonly tasksService = inject(TasksService);
   private messagingService = inject(MessagingService);

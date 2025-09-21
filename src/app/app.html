@@ -47,10 +47,38 @@
     }
     <!-- END: Notification UI -->
 
-    @for (task of (tasks() ?? []); track task.type) {
-      <app-task class="self-stretch w-full" [type]="task.type" [assignee]="task.assignee" [lastDone]="task.completedAt"></app-task>
+    @if (selectedTab() === 0) {
+      @for (task of (tasks() ?? []); track task.type) {
+        <app-task class="self-stretch w-full" [type]="task.type" [assignee]="task.assignee" [lastDone]="task.completedAt"></app-task>
+      }
+    } @else if (selectedTab() === 1) {
+      <app-shopping-list class="w-full max-w-lg" />
     }
   }
 </main>
+
+
+<nav class="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg flex justify-around items-center h-16 z-10">
+  <button
+    class="flex-1 py-2 flex flex-col items-center justify-center text-sm transition-colors duration-150 focus:outline-none"
+    [class.font-bold]="selectedTab() === 0"
+    [class.text-blue-600]="selectedTab() === 0"
+    [class.text-gray-500]="selectedTab() !== 0"
+    (click)="selectTab(0)"
+  >
+    <span class="text-xl mb-1" aria-hidden="true">🧹</span>
+    <span>Tasks</span>
+  </button>
+  <button
+    class="flex-1 py-2 flex flex-col items-center justify-center text-sm transition-colors duration-150 focus:outline-none"
+    [class.font-bold]="selectedTab() === 1"
+    [class.text-blue-600]="selectedTab() === 1"
+    [class.text-gray-500]="selectedTab() !== 1"
+    (click)="selectTab(1)"
+  >
+    <span class="text-xl mb-1" aria-hidden="true">🛒</span>
+    <span>Shopping List</span>
+  </button>
+</nav>
 
 <router-outlet />
