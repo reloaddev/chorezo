@@ -29,6 +29,8 @@ export class Task {
         return 'Rengøring stue og trappe';
       case 'bathroom':
         return 'Rengøring badeværelse';
+      case 'plants':
+        return 'Vanding af planter';
       default:
         return this.type() || '';
     }

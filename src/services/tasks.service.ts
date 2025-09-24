@@ -27,7 +27,7 @@ export class TasksService {
   private readonly firestore = inject(Firestore);
 
   openWithLastDoneByType$(): Observable<TaskDoc[]> {
-    const types = ['kitchen', 'floor', 'bathroom'] as const;
+    const types = ['kitchen', 'floor', 'bathroom', 'plants'] as const;
 
     const perTypeStreams = types.map((t) => {
       const ref = collection(this.firestore, collectionNameForType(t));

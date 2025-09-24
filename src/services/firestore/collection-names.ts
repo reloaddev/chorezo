@@ -4,7 +4,8 @@
 export const COLLECTION_NAME_BY_TASK_TYPE: Record<string, string> = {
   kitchen: 'kitchen-tasks',
   bathroom: 'bathroom-tasks',
-  floor: 'livingroom-tasks'
+  floor: 'livingroom-tasks',
+  plants: 'plant-tasks'
 };
 
 /**
