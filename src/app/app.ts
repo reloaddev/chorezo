@@ -11,7 +11,7 @@ import { MessagingService } from '../services/messaging.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, FormsModule, Task],
+  imports: [RouterOutlet, FormsModule, Task, ShoppingList],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
