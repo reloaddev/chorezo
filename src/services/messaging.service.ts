@@ -1,10 +1,12 @@
-import { Injectable } from '@angular/core';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import {inject, Injectable} from '@angular/core';
+import {getMessaging, getToken, onMessage} from 'firebase/messaging';
+import {addDoc, collection, Firestore} from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MessagingService {
+  private readonly firestore = inject(Firestore);
   messaging = getMessaging();
 
   async requestPermission(): Promise<string | null> {
@@ -13,7 +15,7 @@ export class MessagingService {
       console.log('Requesting notification permission...');
       const permission = await Notification.requestPermission();
       console.log('Permission result:', permission);
-      
+
       if (permission !== 'granted') {
         console.log('Notification permission denied');
         return null;
@@ -21,7 +23,7 @@ export class MessagingService {
 
       // Only after permission is granted, get the FCM token
       console.log('Getting FCM token...');
-      const currentToken = await getToken(this.messaging, { 
+      const currentToken = await getToken(this.messaging, {
         vapidKey: 'BKk1GEeCN_7HYQ_iKRBciMWetBbmAtbUAWWiirLJrRYirzzu7qEAa2gfahYhf2AfukFqfYb8oJtJL-WfkZvC3kE'
       });
 
@@ -43,14 +45,14 @@ export class MessagingService {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     const isInstalled = (window.navigator as any).standalone === true;
     const hasNotificationAPI = 'Notification' in window;
-    
+
     console.log('Notification support check:', {
       isStandalone,
       isInstalled,
       hasNotificationAPI,
       userAgent: navigator.userAgent
     });
-    
+
     return hasNotificationAPI && (isStandalone || isInstalled);
   }
 
@@ -61,9 +63,14 @@ export class MessagingService {
     });
   }
 
+  async recordFCMToken(token: string) {
+    const ref = collection(this.firestore, 'fcm-tokens');
+    await addDoc(ref, { value: token });
+  }
+
   private showNotification(payload: any) {
     console.log('Attempting to show notification:', payload);
-    
+
     if (Notification.permission !== 'granted') {
         console.log('No notification permission');
         return;

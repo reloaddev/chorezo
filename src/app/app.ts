@@ -11,7 +11,7 @@ import { MessagingService } from '../services/messaging.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, FormsModule, Task, ShoppingList],
+  imports: [RouterOutlet, FormsModule, Task],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -84,18 +84,19 @@ export class App implements OnInit {
       }
 
       const token = await this.messagingService.requestPermission();
-      
+
       if (token) {
         this.isNotificationsEnabled.set(true);
         this.showInstallPrompt.set(false);
         this.showNotificationButton.set(false);
-        
+
         // Send token to your backend here if needed
         console.log('Notification token obtained:', token);
-        
+        await this.messagingService.recordFCMToken(token);
+
         // Start listening for messages
         this.messagingService.receiveMessage();
-        
+
         console.log('Notifications enabled successfully');
       } else {
         console.log('Failed to get notification token');
@@ -103,17 +104,6 @@ export class App implements OnInit {
     } catch (error) {
       console.error('Error enabling notifications:', error);
     }
-  }
-
-  // MODIFIED: Remove alert, make it optional
-  requestPermission() {
-    this.messagingService.requestPermission().then(token => {
-      if (token) {
-        console.log('Token received:', token);
-        // Send token to your backend or store it
-        // Removed alert for better UX
-      }
-    });
   }
 
   // NEW: Helper methods
