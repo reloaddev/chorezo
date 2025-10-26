@@ -56,11 +56,16 @@ export class Task {
     return 'default';
   }
 
+  // Helper method to check if task is green (recently completed)
+  isGreen(): boolean {
+    return this.colorStatus() === 'green';
+  }
+
   // Compose the card class string so we don't need NgClass import
   cardClass(): string {
-    const base = 'w-full rounded-xl border shadow-md p-4 mb-4 cursor-pointer select-none';
+    const base = 'w-full rounded-xl border shadow-md p-4 mb-4 select-none';
     const layout = 'bg-white'; // default bg for contrast with dynamic ones
-    const interaction = '';
+    const interaction = this.isGreen() ? '' : 'cursor-pointer';
 
     const color = this.colorClassForStatus(this.colorStatus());
 
