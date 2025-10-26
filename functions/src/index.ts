@@ -15,7 +15,10 @@ import {initializeApp} from 'firebase-admin/app';
 import {getMessaging} from 'firebase-admin/messaging';
 import {getFirestore} from 'firebase-admin/firestore';
 
-initializeApp();
+// Initialize with explicit project configuration
+initializeApp({
+  projectId: 'wotohe-b06a0'
+});
 
 // Collection configuration for notifications
 const COLLECTION_CONFIG = {
@@ -50,6 +53,7 @@ async function sendTaskCompletionNotification(collectionName: string, assignee: 
   try {
     const registrationTokenDocs = await getFirestore().collection('fcm-tokens').get();
     const registrationTokens = registrationTokenDocs.docs.map((doc: any) => doc.data().value);
+    const tokenDocMap = new Map(registrationTokenDocs.docs.map((doc: any) => [doc.data().value, doc.id]));
 
     if (registrationTokens.length === 0) {
       logger.warn('No FCM tokens found');
@@ -68,11 +72,34 @@ async function sendTaskCompletionNotification(collectionName: string, assignee: 
     
     if (response.failureCount > 0) {
       const failedTokens: string[] = [];
+      const tokensToDelete: string[] = [];
+      
       response.responses.forEach((resp: any, idx: any) => {
         if (!resp.success) {
-          failedTokens.push(registrationTokens[idx]);
+          const failedToken = registrationTokens[idx];
+          failedTokens.push(failedToken);
+          
+          // If token is invalid or unregistered, mark for deletion
+          if (resp.error?.code === 'messaging/invalid-registration-token' || 
+              resp.error?.code === 'messaging/registration-token-not-registered') {
+            const docId = tokenDocMap.get(failedToken);
+            if (docId) {
+              tokensToDelete.push(docId);
+            }
+          }
         }
       });
+      
+      // Clean up invalid tokens
+      if (tokensToDelete.length > 0) {
+        const batch = getFirestore().batch();
+        tokensToDelete.forEach(docId => {
+          batch.delete(getFirestore().collection('fcm-tokens').doc(docId));
+        });
+        await batch.commit();
+        logger.log(`Cleaned up ${tokensToDelete.length} invalid FCM tokens`);
+      }
+      
       logger.error('Failed to send notifications to tokens:', failedTokens);
     }
 

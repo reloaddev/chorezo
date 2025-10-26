@@ -1,13 +1,26 @@
 import {inject, Injectable} from '@angular/core';
 import {getMessaging, getToken, onMessage} from 'firebase/messaging';
-import {addDoc, collection, Firestore} from '@angular/fire/firestore';
+import {addDoc, collection, Firestore, getDocs, query, where} from '@angular/fire/firestore';
+import {Auth, authState} from '@angular/fire/auth';
+import {firstValueFrom} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MessagingService {
   private readonly firestore = inject(Firestore);
+  private readonly auth = inject(Auth);
   messaging = getMessaging();
+
+  async initializeMessaging(): Promise<void> {
+    if (this.isNotificationSupported()) {
+      const token = await this.requestPermission();
+      if (token) {
+        await this.recordFCMToken(token);
+        this.receiveMessage();
+      }
+    }
+  }
 
   async requestPermission(): Promise<string | null> {
     try {
@@ -64,8 +77,26 @@ export class MessagingService {
   }
 
   async recordFCMToken(token: string) {
+    // Get current user information
+    const currentUser = await firstValueFrom(authState(this.auth));
+    
+    // Check if token already exists to prevent duplicates
     const ref = collection(this.firestore, 'fcm-tokens');
-    await addDoc(ref, { value: token });
+    const existingTokens = await getDocs(query(ref, where('value', '==', token)));
+    
+    if (existingTokens.empty) {
+      await addDoc(ref, { 
+        value: token,
+        createdAt: new Date(),
+        userAgent: navigator.userAgent,
+        userEmail: currentUser?.email || 'anonymous',
+        userName: currentUser?.displayName || currentUser?.email?.split('@')[0] || 'unknown',
+        userId: currentUser?.uid || null
+      });
+      console.log('New FCM token recorded for user:', currentUser?.email || 'anonymous');
+    } else {
+      console.log('FCM token already exists');
+    }
   }
 
   private showNotification(payload: any) {
