@@ -74,6 +74,6 @@ export class TasksService {
 
     // 2) Create a new open task without completedAt, with next assignee in rotation
     const next = getNextInRotation(currentAssignee as Person);
-    await addDoc(ref, { type, assignee: next } as TaskDoc);
+    await addDoc(ref, { type, assignee: next, createdAt: new Date() } as TaskDoc);
   }
 }

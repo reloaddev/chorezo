@@ -11,6 +11,7 @@
 
 import * as logger from "firebase-functions/logger";
 import {onDocumentUpdated} from 'firebase-functions/firestore';
+import {onSchedule} from 'firebase-functions/v2/scheduler';
 import {initializeApp} from 'firebase-admin/app';
 import {getMessaging} from 'firebase-admin/messaging';
 import {getFirestore} from 'firebase-admin/firestore';
@@ -129,3 +130,73 @@ export const notifyLivingroomChore = onDocumentUpdated("/livingroom-tasks/{docum
   const assignee = event.data?.before.data().assignee;
   await sendTaskCompletionNotification('livingroom-tasks', assignee);
 });
+
+// Helper function to calculate days since last completion
+function calculateDaysSinceCompletion(createdAt: any): number {
+  if (!createdAt) return 999; // Very old if no creation date
+  const createdDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+  const now = new Date();
+  const diffTime = now.getTime() - createdDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays < 0 ? 0 : diffDays;
+}
+
+// Simplified scheduled function that runs daily at 9 AM CET
+export const dailyChoreReminder = onSchedule('0 13 * * *', async (event) => {
+  logger.log('Running daily chore reminder check...');
+  
+  const collections = ['plant-tasks', 'kitchen-tasks', 'bathroom-tasks', 'livingroom-tasks'];
+  
+  for (const collectionName of collections) {
+    try {
+      // Get the most recent task (active one)
+      const latestTaskQuery = await getFirestore()
+        .collection(collectionName)
+        .orderBy('createdAt', 'desc')
+        .limit(1)
+        .get();
+      
+      if (latestTaskQuery.empty) {
+        logger.log(`No tasks found in ${collectionName}`);
+        continue;
+      }
+      
+      const latestTask = latestTaskQuery.docs[0];
+      const taskData = latestTask.data();
+      const assignee = taskData.assignee;
+      const createdAt = taskData.createdAt;
+      const daysSince = calculateDaysSinceCompletion(createdAt);
+      
+      // Send notification if it's been 5 days since task creation
+      if (daysSince >= 5) {
+        logger.log(`${collectionName} is ${daysSince} days overdue, sending reminder to ${assignee}`);
+        
+        // Send reminder notification to everyone
+        const config = COLLECTION_CONFIG[collectionName as keyof typeof COLLECTION_CONFIG];
+        const registrationTokenDocs = await getFirestore().collection('fcm-tokens').get();
+        const registrationTokens = registrationTokenDocs.docs.map((doc: any) => doc.data().value);
+
+        if (registrationTokens.length > 0) {
+          const message = {
+            notification: {
+              title: `⏰ ${config?.taskType || collectionName} chore reminder`,
+              body: `${assignee}, the ${config?.taskType || collectionName} chore hasn't been done for ${daysSince} days. Time to get it done! 💪`
+            },
+            tokens: registrationTokens
+          };
+
+          const response = await getMessaging().sendEachForMulticast(message);
+          logger.log(`Reminder sent for ${collectionName}: ${response.successCount} successful, ${response.failureCount} failed`);
+        }
+      } else {
+        logger.log(`${collectionName} is only ${daysSince} days old, no reminder needed`);
+      }
+      
+    } catch (error) {
+      logger.error(`Error processing ${collectionName}:`, error);
+    }
+  }
+  
+  logger.log('Daily chore reminder completed');
+});
+
