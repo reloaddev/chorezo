@@ -7,7 +7,8 @@ service cloud.firestore {
                          request.auth.uid in [
                            "dFNLhIRlojMbBvyGoNQo3XXoD9t2",
                            "rwZnBP5Mv9T2DAmb5P8yejtfbUg2",
-                           "vDm15DN6lJWSKi3UBytoZT4Sqxm1"
+                           "vDm15DN6lJWSKi3UBytoZT4Sqxm1",
+                           "9Tzsh6XDlJ4JiEGqoZHLNcWgLn38"
                          ];
     }
   }
